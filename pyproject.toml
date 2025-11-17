@@ -11,7 +11,9 @@ version = "0.1.0"
 description = "LLM service Python package skeleton."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "openai>=1.0.0,<2.0.0",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

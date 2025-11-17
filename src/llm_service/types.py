@@ -13,21 +13,21 @@ ContentPartType: TypeAlias = Literal["text", "image_url", "video_url"]
 """消息类型，适用于输入与输出"""
 
 
-class TextPart(TypedDict):
+class TextPart(TypedDict, total=True):
     """纯文本消息"""
 
     type: Literal["text"]
     text: str
 
 
-class ImagePart(TypedDict):
+class ImagePart(TypedDict, total=True):
     """图片类型消息"""
 
     type: Literal["image_url"]
     url: str
 
 
-class VideoPart(TypedDict):
+class VideoPart(TypedDict, total=True):
     """视频类型消息"""
 
     type: Literal["video_url"]
@@ -66,15 +66,19 @@ class Message:
     tool_calls: Sequence[ToolCall] | None = None
 
 
+@dataclass(slots=True)
 class ModelResponse:
     """大模型完整返回时，使用的数据结构"""
+
     message: Message
 
+
+@dataclass(slots=True)
 class StreamChunk:
     """模块返回的流式 chunk"""
 
     type: Literal["content", "thinkg_content", "tool_call"]
-    content: str | None
+    content: str | None = None
     tool_call: ToolCall | None = None
     finish_reason: Literal["stop", "tool_use", "max_tokens", "error"] | None = None
 

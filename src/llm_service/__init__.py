@@ -3,5 +3,6 @@
 from __future__ import annotations
 
 from . import types
+from .providers import OpenAILLM
 
-__all__ = ["types"]
+__all__ = ["types", "OpenAILLM"]
