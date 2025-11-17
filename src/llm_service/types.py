@@ -62,17 +62,21 @@ class Message:
 
     role: Role
     content: MessageContent
-    tool_call_id: str
+    tool_call_id: str | None = None
     tool_calls: Sequence[ToolCall] | None = None
 
+
+class ModelResponse:
+    """大模型完整返回时，使用的数据结构"""
+    message: Message
 
 class StreamChunk:
     """模块返回的流式 chunk"""
 
     type: Literal["content", "thinkg_content", "tool_call"]
-    delta: str | None
-    tool_call: ToolCall
-    finish_reason: Literal["stop", "tool_use", "max_tokens", "error"]
+    content: str | None
+    tool_call: ToolCall | None = None
+    finish_reason: Literal["stop", "tool_use", "max_tokens", "error"] | None = None
 
 
 __all__ = [

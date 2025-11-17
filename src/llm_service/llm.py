@@ -18,9 +18,5 @@ class LLM(Protocol):
         """执行一次流式推理，逐个返回 chunk。"""
         ...
 
-    def capabilities(self):
-        """返回模型能力概览（具体类型待定义）。"""
-        ...
-
 
 __all__ = ["LLM"]
