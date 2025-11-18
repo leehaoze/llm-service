@@ -152,9 +152,11 @@ def _serialize_content(content: MessageContent) -> Any:
             case {"type": "text", "text": text}:
                 serialized_parts.append({"type": "text", "text": text})
             case {"type": "image_url", "url": url}:
-                serialized_parts.append({"type": "image_url", "url": url})
+                serialized_parts.append({"type": "image_url", "image_url": {"url": url}})
             case {"type": "video_url", "url": url}:
-                serialized_parts.append({"type": "video_url", "url": url})
+                serialized_parts.append({"type": "video_url", "video_url": {"url": url}})
+            case {"type": "input_audio", "input_audio": audio_data}:
+                serialized_parts.append({"type": "input_audio", "input_audio": audio_data})
             case _:
                 raise ValueError(f"Unknow part type: {part}")
 

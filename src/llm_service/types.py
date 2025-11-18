@@ -9,7 +9,7 @@ from typing import Literal, Sequence, TypeAlias, TypedDict
 Role: TypeAlias = Literal["system", "user", "assistant", "tool"]
 """标准的消息角色"""
 
-ContentPartType: TypeAlias = Literal["text", "image_url", "video_url"]
+ContentPartType: TypeAlias = Literal["text", "image_url", "video_url", "input_audio"]
 """消息类型，适用于输入与输出"""
 
 
@@ -34,8 +34,15 @@ class VideoPart(TypedDict, total=True):
     url: str
 
 
+class AudioPart(TypedDict, total=True):
+    """音频类型消息"""
+
+    type: Literal["input_audio"]
+    input_audio: dict  # {"data": base64_string, "format": "wav"|"mp3"}
+
+
 # 统一的内容片段类型
-ContentPart: TypeAlias = TextPart | ImagePart | VideoPart
+ContentPart: TypeAlias = TextPart | ImagePart | VideoPart | AudioPart
 
 # 消息内容：可以是纯字符串，也可以是多个Part
 MessageContent: TypeAlias = str | Sequence[ContentPart]
@@ -115,6 +122,7 @@ __all__ = [
     "TextPart",
     "ImagePart",
     "VideoPart",
+    "AudioPart",
     "ContentPart",
     "MessageContent",
     "ToolCallFunction",
