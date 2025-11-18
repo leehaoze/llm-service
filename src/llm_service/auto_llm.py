@@ -9,10 +9,12 @@ from dotenv import load_dotenv
 from .llm import LLM
 from .model_registry import MODEL_REGISTRY, ModelCapability, get_model_capability
 from .providers.common import OpenAIWrapper
+from .decorators.function_call_decorator import FunctionCallDecorator
 from .types import Message, ModelResponse, StreamChunk, Tool
 
 
 PreferenceType = Literal["speed", "quality"]
+FCModeType = Literal["native", "prompt"]
 
 
 class AutoLLM(LLM):
@@ -37,7 +39,8 @@ class AutoLLM(LLM):
         *,
         model: str | None = None,
         prefer: PreferenceType = "quality",
-        multimodal: bool = False
+        multimodal: bool = False,
+        fc_mode: FCModeType = "native"
     ) -> None:
         """
         初始化 AutoLLM
@@ -46,6 +49,7 @@ class AutoLLM(LLM):
             model: 手动指定模型名称，如果指定则忽略 prefer 和 multimodal
             prefer: 偏好类型，"speed" 或 "quality"
             multimodal: 是否需要多模态支持
+            fc_mode: function call 模式，"native"（原生）或 "prompt"（prompt 模拟）
         """
         # 加载 .env 文件
         load_dotenv(override=False)
@@ -77,15 +81,22 @@ class AutoLLM(LLM):
             )
 
         # 创建底层 LLM wrapper
-        self._llm = OpenAIWrapper(
+        base_llm = OpenAIWrapper(
             model=selected_model,
             api_key=api_key,
             base_url=base_url
         )
 
+        # 根据 fc_mode 决定是否使用装饰器
+        if fc_mode == "prompt":
+            self._llm = FunctionCallDecorator(inner=base_llm)
+        else:
+            self._llm = base_llm
+
         # 保存选择信息
         self._selected_model = selected_model
         self._capability = capability
+        self._fc_mode = fc_mode
 
     def _select_model(
         self,
@@ -155,4 +166,4 @@ class AutoLLM(LLM):
         return self._capability
 
 
-__all__ = ["AutoLLM", "PreferenceType"]
+__all__ = ["AutoLLM", "PreferenceType", "FCModeType"]
