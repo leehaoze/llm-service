@@ -4,7 +4,9 @@
 
 ## 特性
 
+- **智能路由**：根据速度/质量偏好自动选择最合适的大模型
 - **统一接口**：为不同的 LLM 提供商提供统一的调用接口
+- **多模态支持**：支持文本、图片、视频、音频等多模态输入
 - **Function Call 支持**：原生支持 function calling，包括 prompt 模式模拟
 - **流式输出**：支持流式响应
 - **类型安全**：完整的 Python 类型注解
@@ -17,7 +19,35 @@ pip install -e .
 
 ## 快速开始
 
+### 使用 AutoLLM（推荐）
+
+AutoLLM 会根据你的需求自动选择最合适的模型：
+
+```python
+from llm_service import AutoLLM, types
+
+# 速度优先 - 自动选择最快的模型
+llm = AutoLLM(prefer="speed")
+
+# 质量优先 - 自动选择质量最好的模型
+# llm = AutoLLM(prefer="quality")
+
+# 需要多模态支持 - 自动选择支持图片/视频的模型
+# llm = AutoLLM(prefer="quality", multimodal=True)
+
+# 手动指定模型
+# llm = AutoLLM(model="qwen-max")
+
+messages = [types.Message(role="user", content="你好")]
+response = llm.complete(messages)
+print(response.message.content)
+```
+
+支持的模型：通义千问（qwen-turbo/plus/max）、DeepSeek、豆包等。详见 [AutoLLM 文档](docs/AutoLLM.md)
+
 ### 基本使用
+
+直接使用 OpenAIWrapper（适合明确知道要用哪个模型）：
 
 ```python
 from llm_service import OpenAIWrapper, types
@@ -100,6 +130,8 @@ llm-service/
 ├── src/llm_service/
 │   ├── types.py              # 类型定义
 │   ├── llm.py                # LLM Protocol 定义
+│   ├── auto_llm.py           # AutoLLM 智能大模型
+│   ├── model_registry.py     # 模型注册表和能力定义
 │   ├── providers/            # LLM 提供商实现
 │   │   └── common.py         # OpenAI 兼容实现
 │   └── decorators/           # 装饰器
@@ -119,7 +151,8 @@ python tests/test_decorator_simple.py
 
 ## 文档
 
-- [FunctionCallDecorator 使用指南](docs/FunctionCallDecorator.md)
+- [AutoLLM 使用指南](docs/AutoLLM.md) - 智能模型路由器
+- [FunctionCallDecorator 使用指南](docs/FunctionCallDecorator.md) - Function Call 装饰器
 - [实现总结](IMPLEMENTATION_SUMMARY.md)
 
 ## 开发
