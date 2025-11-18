@@ -23,6 +23,7 @@ class OpenAIWrapper(LLM):
         self._model = model
         self._client = OpenAI(
             api_key=api_key,
+            base_url="https://ark.cn-beijing.volces.com/api/v3"
         )
     
     

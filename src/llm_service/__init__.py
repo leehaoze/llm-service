@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from . import types
-from .providers import OpenAILLM
+from .providers import OpenAIWrapper
+from .decorators import FunctionCallDecorator
 
-__all__ = ["types", "OpenAILLM"]
+# 为了保持兼容性，提供别名
+OpenAILLM = OpenAIWrapper
+
+__all__ = ["types", "OpenAIWrapper", "OpenAILLM", "FunctionCallDecorator"]
