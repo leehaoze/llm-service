@@ -8,10 +8,7 @@ def demo_prompt_fc_mode():
     """演示使用装饰器将原生 FC 转换为 Prompt 模式"""
 
     # 1. 创建原始 LLM（OpenAI 原生支持 FC）
-    base_llm = OpenAIWrapper(
-        model="deepseek-v3-1-250821",
-        api_key="1ce508a9-8c54-4967-aa4b-ac9bc24c07da"
-    )
+    base_llm = OpenAIWrapper()
 
     # 2. 用装饰器包装，强制走 Prompt 模式
     llm = FunctionCallDecorator(inner=base_llm)
@@ -69,10 +66,7 @@ def demo_prompt_fc_mode():
 def demo_without_decorator():
     """演示不使用装饰器，直接使用原生 FC"""
 
-    llm = OpenAIWrapper(
-        model="deepseek-v3-1-250821",
-        api_key="1ce508a9-8c54-4967-aa4b-ac9bc24c07da"
-    )
+    llm = OpenAIWrapper()
 
     tools: list[types.Tool] = [
         {

@@ -1,5 +1,7 @@
 """适合所有兼容 openai 的大模型请求"""
 from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
 from typing import Sequence, Iterable, Any, Literal, cast
 
@@ -17,13 +19,30 @@ class OpenAIWrapper(LLM):
     def __init__(
         self,
         *,
-        model: str,
-        api_key: str | None = None
+        model: str | None = None,
+        api_key: str | None = None,
+        base_url: str | None = None
     ) -> None:
-        self._model = model
+        # 加载 .env 文件 (自动向上查找项目根目录的 .env)
+        load_dotenv(override=False)  # override=False 表示不覆盖已存在的环境变量
+
+        # 配置优先级: 参数 > 环境变量 > 抛出异常
+        final_model = model or os.getenv("OPENAI_MODEL")
+        if not final_model:
+            raise ValueError(
+                "model must be provided either as parameter or OPENAI_MODEL environment variable"
+            )
+        self._model: str = final_model
+
+        final_api_key = api_key or os.getenv("OPENAI_API_KEY")
+        final_base_url = base_url or os.getenv("OPENAI_BASE_URL")
+        
+        import logging
+        logging.info(f"final_api_key {final_api_key}")
+
         self._client = OpenAI(
-            api_key=api_key,
-            base_url="https://ark.cn-beijing.volces.com/api/v3"
+            api_key=final_api_key,
+            base_url=final_base_url
         )
     
     
