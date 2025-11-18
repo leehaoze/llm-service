@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from .openai import OpenAILLM
+from .common import OpenAIWrapper
 
-__all__ = ["OpenAILLM"]
+__all__ = ["OpenAIWrapper"]
