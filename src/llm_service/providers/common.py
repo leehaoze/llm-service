@@ -4,12 +4,13 @@ from openai import OpenAI
 from typing import Sequence, Iterable, Any, Literal, cast
 
 from ..llm import LLM
-from ..types import Role, Message, MessageContent, ModelResponse, StreamChunk
+from ..types import Role, Message, MessageContent, ModelResponse, StreamChunk, Tool
 
 from openai.types.chat import(
     ChatCompletionMessageParam,
     ChatCompletion,
-    ChatCompletionChunk
+    ChatCompletionChunk,
+    ChatCompletionToolParam
 )
 
 class OpenAIWrapper(LLM):
@@ -25,22 +26,45 @@ class OpenAIWrapper(LLM):
         )
     
     
-    def complete(self, messages: Sequence[Message]) -> ModelResponse:
+    def complete(
+        self,
+        messages: Sequence[Message],
+        tools: Sequence[Tool] | None = None
+    ) -> ModelResponse:
         """执行一次标准的大模型推理。"""
-        response = self._client.chat.completions.create(
-            model=self._model,
-            messages=_serialize_messages(messages)
-        )
+        if tools:
+            response = self._client.chat.completions.create(
+                model=self._model,
+                messages=_serialize_messages(messages),
+                tools=_serialize_tools(tools)
+            )
+        else:
+            response = self._client.chat.completions.create(
+                model=self._model,
+                messages=_serialize_messages(messages)
+            )
 
         return _deserialize_response(response)
 
-    def stream(self, messages: Sequence[Message]) -> Iterable[StreamChunk]:
+    def stream(
+        self,
+        messages: Sequence[Message],
+        tools: Sequence[Tool] | None = None
+    ) -> Iterable[StreamChunk]:
         """执行一次流式推理，逐个返回 chunk。"""
-        stream = self._client.chat.completions.create(
-            model=self._model,
-            messages=_serialize_messages(messages),
-            stream=True
-        )
+        if tools:
+            stream = self._client.chat.completions.create(
+                model=self._model,
+                messages=_serialize_messages(messages),
+                tools=_serialize_tools(tools),
+                stream=True
+            )
+        else:
+            stream = self._client.chat.completions.create(
+                model=self._model,
+                messages=_serialize_messages(messages),
+                stream=True
+            )
 
         for chunk in stream:
             if parsed_chunk := _deserialize_stream_chunk(chunk):
@@ -48,25 +72,52 @@ class OpenAIWrapper(LLM):
     
     
 
+def _serialize_tools(tools: Sequence[Tool]) -> list[ChatCompletionToolParam]:
+    """将统一的 Tool 格式转换为 OpenAI 的格式"""
+    return [cast(ChatCompletionToolParam, tool) for tool in tools]
+
+
 def _serialize_messages(messages: Sequence[Message]) -> list[ChatCompletionMessageParam]:
     serialized: list[ChatCompletionMessageParam] = []
 
     for message in messages:
-        serialized.append(
-            cast(ChatCompletionMessageParam, {
-                "role": _transfrom_role(message.role),
-                "content": _serialize_content(message.content)
-            })
-        )
+        msg_dict: dict[str, Any] = {
+            "role": _transfrom_role(message.role),
+            "content": _serialize_content(message.content)
+        }
+
+        # 处理 assistant 消息的 tool_calls
+        if message.role == "assistant" and message.tool_calls:
+            msg_dict["tool_calls"] = [
+                {
+                    "id": tc["id"],
+                    "type": tc["type"],
+                    "function": {
+                        "name": tc["function"]["name"],
+                        "arguments": tc["function"]["arguments"]
+                    }
+                }
+                for tc in message.tool_calls
+            ]
+
+        # 处理 tool 消息的 tool_call_id
+        if message.role == "tool" and message.tool_call_id:
+            msg_dict["tool_call_id"] = message.tool_call_id
+
+        serialized.append(cast(ChatCompletionMessageParam, msg_dict))
 
     return serialized
 
-def _transfrom_role(role: Role) -> Literal["user", "assistant", "system"]:
+def _transfrom_role(role: Role) -> Literal["user", "assistant", "system", "tool"]:
     match role:
         case "user":
             return "user"
         case "assistant":
             return "assistant"
+        case "system":
+            return "system"
+        case "tool":
+            return "tool"
         case _ :
             raise ValueError(f"Unknow role type: {role}")
     

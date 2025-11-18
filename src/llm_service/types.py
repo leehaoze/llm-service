@@ -83,6 +83,32 @@ class StreamChunk:
     finish_reason: Literal["stop", "tool_use", "max_tokens", "error"] | None = None
 
 
+class ToolParameter(TypedDict, total=False):
+    """工具参数的 JSON Schema 定义"""
+
+    type: str
+    description: str
+    properties: dict[str, "ToolParameter"]
+    required: list[str]
+    items: "ToolParameter"
+    enum: list[str]
+
+
+class ToolFunction(TypedDict):
+    """工具的函数定义"""
+
+    name: str
+    description: str
+    parameters: ToolParameter
+
+
+class Tool(TypedDict):
+    """工具定义"""
+
+    type: Literal["function"]
+    function: ToolFunction
+
+
 __all__ = [
     "Role",
     "ContentPartType",
@@ -94,5 +120,9 @@ __all__ = [
     "ToolCallFunction",
     "ToolCall",
     "Message",
+    "ModelResponse",
     "StreamChunk",
+    "ToolParameter",
+    "ToolFunction",
+    "Tool",
 ]
